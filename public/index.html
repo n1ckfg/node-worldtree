@@ -20,10 +20,12 @@
 		<script src="./js/libraries/threejs/postprocessing/ShaderPass.js"></script>
 		<script src="./js/libraries/threejs/postprocessing/RenderPass.js"></script>
 		<script src="./js/libraries/threejs/postprocessing/UnrealBloomPass.js"></script>
+		<script src="./js/libraries/threejs/webxr/VRButton.js"></script>
 
 		<script src="./js/libraries/util.js/threejs-util.js"></script>
 		<script src="./js/threejs-wasd.js"></script>
 		<script src="./js/threejs-mouse.js"></script>
+		<script src="./js/threejs-xr.js"></script>
 
 		<script src="./js/libraries/latk.js/latk.js"></script>		
 		<script src="./js/latk-stroke-morph.js"></script>		
@@ -34,6 +36,9 @@
 		<script>
 			"use strict";
 
+			const container = document.createElement("div");
+			document.body.appendChild(container);
+
 			const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false, preserveDrawingBuffer: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setPixelRatio(window.devicePixelRatio);
@@ -43,8 +48,12 @@
 			renderer.toneMapping = THREE.ReinhardToneMapping;
 			renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 
+			renderer.xr.enabled = true;
+
 			renderer.autoClear = false;
-			document.body.appendChild(renderer.domElement);
+
+			container.appendChild( renderer.domElement );
+			document.body.appendChild( VRButton.createButton( renderer ) );
 
 			const cameraFov = 60;
 			const cameraAspect = window.innerWidth / window.innerHeight;
