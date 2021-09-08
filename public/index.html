@@ -42,10 +42,10 @@
 			const renderer = new THREE.WebGLRenderer({ antialias: true });
 			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.outputEncoding = THREE.sRGBEncoding;
+			//renderer.outputEncoding = THREE.sRGBEncoding;
 			renderer.xr.enabled = true;
 
-			const exposure = 1.2;
+			const exposure = 1.8;
 			renderer.toneMapping = THREE.ReinhardToneMapping;
 			renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 
@@ -81,6 +81,7 @@
 
 			let now = 0;
 
+			/*
 			const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 			bloomPass.threshold = 0; //0;
 			bloomPass.strength = 10; //1.5;
@@ -91,6 +92,7 @@
 			const composer = new THREE.EffectComposer(renderer);
 			composer.addPass(renderPass);
 			composer.addPass(bloomPass);
+			*/
 
 			let boxWidth, params, manager, lastRender;
 
@@ -172,8 +174,16 @@
 			    setupWasd();
 			    setupMouse();
 
+				window.addEventListener("resize", onWindowResize);
+
 			    renderer.setAnimationLoop(render);
 			}    
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
 
 			function render() {
 			    bigLocalPoints = [];
@@ -230,8 +240,8 @@
 			        writeJson();
 			    }  
 
-			    //renderer.render(scene, camera);
-			    composer.render();
+			    renderer.render(scene, camera);
+			    //composer.render();
 			}
 
 			function latkPointToVec3(latkPoint) {
