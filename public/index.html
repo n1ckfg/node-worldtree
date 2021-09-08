@@ -39,21 +39,20 @@
 			const container = document.createElement("div");
 			document.body.appendChild(container);
 
-			const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false, preserveDrawingBuffer: true });
-			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setClearColor(0x000000);
-
-			const exposure = 1.2;
-			renderer.toneMapping = THREE.ReinhardToneMapping;
-			renderer.toneMappingExposure = Math.pow(exposure, 4.0);
-
+			const renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.outputEncoding = THREE.sRGBEncoding;
 			renderer.xr.enabled = true;
 
-			renderer.autoClear = false;
+			//const exposure = 1.2;
+			//renderer.toneMapping = THREE.ReinhardToneMapping;
+			//renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 
-			container.appendChild( renderer.domElement );
-			document.body.appendChild( VRButton.createButton( renderer ) );
+			//renderer.autoClear = false;
+
+			container.appendChild(renderer.domElement);
+			document.body.appendChild(VRButton.createButton(renderer));
 
 			const cameraFov = 60;
 			const cameraAspect = window.innerWidth / window.innerHeight;
@@ -84,6 +83,7 @@
 
 			let now = 0;
 
+			/*
 			const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 			bloomPass.threshold = 0; //0;
 			bloomPass.strength = 10; //1.5;
@@ -94,6 +94,7 @@
 			const composer = new THREE.EffectComposer(renderer);
 			composer.addPass(renderPass);
 			composer.addPass(bloomPass);
+			*/
 
 			let boxWidth, params, manager, lastRender;
 
@@ -163,7 +164,7 @@
 
 			const strokeLife = 0.01;
 
-			function setup() {
+			function init() {
 			    latk = new Latk();//Latk.read("../animations/jellyfish.latk");
 			    for (let h=0; h<2; h++) {
 			        latk.layers.push(new LatkLayer());
@@ -175,10 +176,10 @@
 			    setupWasd();
 			    setupMouse();
 
-			    draw();
+			    renderer.setAnimationLoop(render);
 			}    
 
-			function draw() {
+			function render() {
 			    bigLocalPoints = [];
 			    bigRemotePoints = [];
 			    if (!isDrawing) localTempVec3Array = [];
@@ -233,8 +234,7 @@
 			        writeJson();
 			    }  
 
-			    composer.render();
-			    requestAnimationFrame(draw);     
+			    renderer.render(scene, camera);
 			}
 
 			function latkPointToVec3(latkPoint) {
@@ -414,8 +414,7 @@
 			    refreshRemoteFrame();
 			}
 
-			setup();
-
+			init();
 		</script>
 	</body>
 
