@@ -122,6 +122,7 @@
 			let numPlaces = 7;
 			let altKeyBlock = false;
 
+			/*
 			let c1b0_blocking = false;
 			let c1b1_blocking = false;
 			let c1b2_blocking = false;
@@ -130,6 +131,7 @@
 			let c2b1_blocking = false;
 			let c2b2_blocking = false;
 			let c2b3_blocking = false;
+			*/
 
 			let latk;
 
@@ -171,6 +173,7 @@
 			        }
 			    }
 
+				setupXr();
 			    setupWasd();
 			    setupMouse();
 
@@ -190,6 +193,7 @@
 			    bigRemotePoints = [];
 			    if (!isDrawing) localTempVec3Array = [];
 
+			    updateXr();
 			    updateWasd();
 
 			    if (armFrameForward) {

@@ -1,68 +1,60 @@
 "use strict";
 
-let controller1, controller2;
+let controller0, controller1;
+let xrReady = false;
 
-function onSelectStart() {
-	this.userData.isSelecting = true;
+function onTriggerStart() {
+	this.userData.trigger = true;
+	beginStroke(this.position.x, this.position.y, this.position.z);
 }
 
-function onSelectEnd() {
-	this.userData.isSelecting = false;
+function onTriggerEnd() {
+	this.userData.trigger = false;
+	endStroke();
 }
 
-function onSqueezeStart() {
-	this.userData.isSqueezing = true;
-	this.userData.positionAtSqueezeStart = this.position.y;
-	this.userData.scaleAtSqueezeStart = this.scale.x;
+function onGripStart() {
+	this.userData.grip = true;
 }
 
-function onSqueezeEnd() {
-	this.userData.isSqueezing = false;
+function onGripEnd() {
+	this.userData.grip = false;
 }
 
 function handleController(controller) {
 	const userData = controller.userData;
-	const painter = userData.painter;
 
-	const pivot = controller.getObjectByName( 'pivot' );
-
-	if (userData.isSqueezing === true) {
-		const delta = (controller.position.y - userData.positionAtSqueezeStart) * 5;
-		const scale = Math.max(0.1, userData.scaleAtSqueezeStart + delta);
-
-		pivot.scale.setScalar(scale);
-		painter.setSize(scale);
+	if (userData.trigger) {
+		console.log("Trigger");
+		updateStroke(controller.position.x, controller.position.y, controller.position.z);
 	}
 
-	cursor.setFromMatrixPosition(pivot.matrixWorld);
-
-	if (userData.isSelecting === true) {
-		painter.lineTo(cursor);
-		painter.update();
-	} else {
-		painter.moveTo(cursor);
+	if (userData.grip) {
+		console.log("Grip");
 	}
 }
 
 function setupXr() {
-	controller1 = renderer.xr.getController(0);
-	controller1.addEventListener("selectstart", onSelectStart);
-	controller1.addEventListener("selectend", onSelectEnd);
-	controller1.addEventListener("squeezestart", onSqueezeStart);
-	controller1.addEventListener("squeezeend", onSqueezeEnd);
-	//controller1.userData.painter = painter1;
+	controller0 = renderer.xr.getController(0);
+	controller0.addEventListener("selectstart", onTriggerStart);
+	controller0.addEventListener("selectend", onTriggerEnd);
+	controller0.addEventListener("squeezestart", onGripStart);
+	controller0.addEventListener("squeezeend", onGripEnd);
+	scene.add(controller0);
+
+	controller1 = renderer.xr.getController(1);
+	controller1.addEventListener("selectstart", onTriggerStart);
+	controller1.addEventListener("selectend", onTriggerEnd);
+	controller1.addEventListener("squeezestart", onGripStart);
+	controller1.addEventListener("squeezeend", onGripEnd);
 	scene.add(controller1);
 
-	controller2 = renderer.xr.getController(1);
-	controller2.addEventListener("selectstart", onSelectStart);
-	controller2.addEventListener("selectend", onSelectEnd);
-	controller2.addEventListener("squeezestart", onSqueezeStart);
-	controller2.addEventListener("squeezeend", onSqueezeEnd);
-	//controller2.userData.painter = painter2;
-	scene.add(controller2);
+	xrReady = true;
 }
 
 function updateXr() {
-	handleController(controller1);
-	handleController(controller2);
+	if (xrReady) {
+		handleController(controller0);
+		handleController(controller1);
+	}
 }
