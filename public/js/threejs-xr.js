@@ -6,8 +6,12 @@ let xrReady = false;
 
 function onTriggerStart() {
 	this.userData.trigger = true;
-	const pivot = this.getObjectByName("pivot");
-	const target = new THREE.Vector3().setFromMatrixPosition(pivot.matrixWorld);
+	let target;
+	if (this === controller0) {
+		target = new THREE.Vector3().setFromMatrixPosition(pivot0.matrixWorld);
+	} else {
+		target = new THREE.Vector3().setFromMatrixPosition(pivot1.matrixWorld);
+	}
 	beginStroke(target.x, target.y, target.z);
 }
 
@@ -26,11 +30,16 @@ function onGripEnd() {
 
 function handleController(controller) {
 	const userData = controller.userData;
-	const pivot = controller.getObjectByName("pivot");
-	const target = new THREE.Vector3().setFromMatrixPosition(pivot.matrixWorld);
 
 	if (userData.trigger) {
 		console.log("Trigger");
+		let target;
+		if (controller === controller0) {
+			target = new THREE.Vector3().setFromMatrixPosition(pivot0.matrixWorld);
+		} else {
+			target = new THREE.Vector3().setFromMatrixPosition(pivot1.matrixWorld);
+		}
+
 		updateStroke(target.x, target.y, target.z);
 	}
 
@@ -51,7 +60,9 @@ function makeControllerMeshes() {
 	mesh.add(pivot);
 
 	controller0.add(mesh.clone());
+	pivot0 = controller0.getObjectByName("pivot");
 	controller1.add(mesh.clone());
+	pivot1 = controller1.getObjectByName("pivot");
 }
 
 function setupXr() {
