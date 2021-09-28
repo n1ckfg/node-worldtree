@@ -14,12 +14,6 @@
 		<script src="./js/magenta-script.js" defer></script>
 		
 		<script src="./js/libraries/threejs/three.min.js"></script>
-		<script src="./js/libraries/threejs/shaders/CopyShader.js"></script>
-		<script src="./js/libraries/threejs/shaders/LuminosityHighPassShader.js"></script>
-		<script src="./js/libraries/threejs/postprocessing/EffectComposer.js"></script>
-		<script src="./js/libraries/threejs/postprocessing/ShaderPass.js"></script>
-		<script src="./js/libraries/threejs/postprocessing/RenderPass.js"></script>
-		<script src="./js/libraries/threejs/postprocessing/UnrealBloomPass.js"></script>
 		<script src="./js/libraries/threejs/webxr/VRButton.js"></script>
 
 		<script src="./js/libraries/util.js/threejs-util.js"></script>
@@ -42,7 +36,6 @@
 			const renderer = new THREE.WebGLRenderer({ antialias: true });
 			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			//renderer.outputEncoding = THREE.sRGBEncoding;
 			renderer.xr.enabled = true;
 
 			const exposure = 1.8;
@@ -81,19 +74,6 @@
 
 			let now = 0;
 
-			/*
-			const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-			bloomPass.threshold = 0; //0;
-			bloomPass.strength = 10; //1.5;
-			bloomPass.radius = 0.8; //0.8
-
-			const renderPass = new THREE.RenderPass(scene, camera);
-
-			const composer = new THREE.EffectComposer(renderer);
-			composer.addPass(renderPass);
-			composer.addPass(bloomPass);
-			*/
-
 			let boxWidth, params, manager, lastRender;
 
 			let armSaveJson = false;
@@ -105,7 +85,7 @@
 			let clicked = false;
 
 			let fps = 12.0;
-			let frameInterval = (1.0/fps);// * 1000;
+			let frameInterval = (1.0/fps);
 			let frameDelta = 0;
 			let time = 0;
 			let pTime = 0;
@@ -121,17 +101,6 @@
 			let roundValues = true;
 			let numPlaces = 7;
 			let altKeyBlock = false;
-
-			/*
-			let c1b0_blocking = false;
-			let c1b1_blocking = false;
-			let c1b2_blocking = false;
-			let c1b3_blocking = false;
-			let c2b0_blocking = false;
-			let c2b1_blocking = false;
-			let c2b2_blocking = false;
-			let c2b3_blocking = false;
-			*/
 
 			let latk;
 
@@ -165,7 +134,7 @@
 			const strokeLife = 0.01;
 
 			function init() {
-			    latk = new Latk();//Latk.read("../animations/jellyfish.latk");
+			    latk = new Latk();
 			    for (let h=0; h<2; h++) {
 			        latk.layers.push(new LatkLayer());
 			        for (let i=0; i<12; i++) {
@@ -245,7 +214,6 @@
 			    }  
 
 			    renderer.render(scene, camera);
-			    //composer.render();
 			}
 
 			function latkPointToVec3(latkPoint) {
@@ -287,7 +255,6 @@
 			} 
 
 			function tempStrokeToJson() {
-			    //try {
 			    let layer = latk.getLastLayer();
 
 			    let sb = [];
@@ -312,39 +279,25 @@
 			    sb.push("}");
 
 			    return JSON.parse(sb.join(""));
-			    //} catch (e) {
-			        //console.log("Something went wrong sending a stroke.")
-			    //}
 			}
-
-			// ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 			function beginStroke(x, y, z) {
 			    isDrawing = true;
-			    //isPlaying = false;
 			    localTempVec3Array = [];
 			    localTempVec3Array.push(new THREE.Vector3(x, y, z));
 			    console.log("Begin new stroke.");
 			}
 
 			function updateStroke(x, y, z) {
-			    //let p = new THREE.Vector3(x, y, z);
-
-			    //if (p.distanceTo(localTempVec3Array[localTempVec3Array.length-1]) > minDistance) {
-			        localTempVec3Array.push(new THREE.Vector3(x, y, z));
-			        console.log("Update " + localTempVec3Array.length + " points."); 
-			    //}
+		        localTempVec3Array.push(new THREE.Vector3(x, y, z));
+		        console.log("Update " + localTempVec3Array.length + " points."); 
 			}
 
-			function endStroke() {  // TODO draw on new layer
-			    //if (isDrawing) {
+			function endStroke() { 
 				isDrawing = false;
 			    createStroke(localTempVec3Array, 0);
-			    //~
 			    socket.emit("clientStrokeToServer", tempStrokeToJson());
-			    //~
 			    console.log("End stroke.");
-				//}
 			    getMagentaButton(localTempVec3Array);
 			}
 
@@ -361,7 +314,6 @@
 			        }   
 			    }
 			}
-			// ~ ~ ~ 
 
 			function getMagentaButton(points) {
 			    try {
@@ -399,7 +351,6 @@
 
 			function frameMotor() {
 			    for (let h=0; h<latk.layers.length; h++) {
-			        //redrawFrame(h);
 			        latk.layers[h].previousFrame = latk.layers[h].counter;
 			        latk.layers[h].counter++;
 			        if (latk.layers[h].counter >= latk.layers[h].frames.length - 1) {
