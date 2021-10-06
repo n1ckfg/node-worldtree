@@ -7,7 +7,6 @@
 		<link rel="stylesheet" href="./css/main.css"/>
 
 		<script src="./js/libraries/util.js/general-util.js"></script>
-		<script src="./js/libraries/socket.io/socket.io.js"></script>	
 
 		<script src="./js/libraries/magenta/magenta.js"></script>
 		<script src="./js/libraries/magenta/magenta-helpers.js" defer></script>
@@ -23,7 +22,6 @@
 
 		<script src="./js/libraries/latk.js/latk.js"></script>		
 		<script src="./js/latk-stroke-morph.js"></script>		
-		<script src="./js/networking.js"></script>		
 	</head>
 
 	<body>
@@ -194,7 +192,7 @@
 			            frameMotor();
 			        }
 			        
-			        refreshRemoteFrame();
+			        //refreshRemoteFrame();
 			    }
 
 			    if (Math.random() < strokeLife) {
@@ -296,7 +294,7 @@
 			function endStroke() { 
 				isDrawing = false;
 			    createStroke(localTempVec3Array, 0);
-			    socket.emit("clientStrokeToServer", tempStrokeToJson());
+			    //socket.emit("clientStrokeToServer", tempStrokeToJson());
 			    console.log("End stroke.");
 			    getMagentaButton(localTempVec3Array);
 			}
@@ -329,6 +327,7 @@
 			    }
 			}
 
+			/*
 			function refreshRemoteFrame() {
 				socket.emit("clientRequestFrame", { num: latk.layers[1].counter });
 
@@ -338,6 +337,7 @@
 
 			    bigRemoteGeoBuffer.setFromPoints(bigRemotePoints); 
 			}
+			*/
 
 			function refreshLocalFrame() {
 			    bigLocalPoints = convertVec3ToLineSegments(localTempVec3Array);

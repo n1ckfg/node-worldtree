@@ -1,78 +1,63 @@
 "use strict";
 
 const express = require("express");
-const app = express();
+const server = express();
+const ws = require("ws");
+const fs = require('fs');
 
-const fs = require("fs");
 const dotenv = require("dotenv").config();
-const debug = process.env.DEBUG === "true";
 
-let options;
-if (!debug) {
-    options = {
-        key: fs.readFileSync(process.env.KEY_PATH),
-        cert: fs.readFileSync(process.env.CERT_PATH)
-    };
+let DEBUG;
+if (!process.env.PORT_HTTP) { // if this is false, there's no .env
+    console.log("\nNo .env file was found.");
+    DEBUG = true;
+} else {
+    console.log("\nFound .env file.");
+    DEBUG = process.env.DEBUG === true;
 }
 
-const https = require("https").createServer(options, app);
+let https, http, wss;
+const PORT_HTTP = process.env.PORT_HTTP || 8080;
+const PORT_HTTPS = process.env.PORT_HTTPS || 443;
+const PORT_WS = process.env.PORT_WS || 8090; // not used unless you want a second ws port
 
-// default -- pingInterval: 1000 * 25, pingTimeout: 1000 * 60
-// low latency -- pingInterval: 1000 * 5, pingTimeout: 1000 * 10
-let io, http;
-const ping_interval = 1000 * 5;
-const ping_timeout = 1000 * 10;
-const port_http = process.env.PORT_HTTP;
-const port_https = process.env.PORT_HTTPS;
-const port_ws = process.env.PORT_WS;
-
-const WebSocket = require("ws");
-const ws = new WebSocket.Server({ port: port_ws, pingInterval: ping_interval, pingTimeout: ping_timeout }, function() {
-    console.log("\nNode.js listening on websocket port " + port_ws);
-});
-
-if (!debug) {
+if (!DEBUG) {
     http = require("http");
 
     http.createServer(function(req, res) {
         res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
         res.end();
-    }).listen(port_http);
+    }).listen(PORT_HTTP);
 
-    io = require("socket.io")(https, { 
-        pingInterval: ping_interval,
-        pingTimeout: ping_timeout
+    let options = {
+        key: fs.readFileSync(process.env.KEY_PATH),
+        cert: fs.readFileSync(process.env.CERT_PATH)
+    };
+
+    https = require("https").createServer(options, server);
+
+    wss = new ws.Server({ server: https });
+
+    https.listen(PORT_HTTPS, function() {
+        console.log("\nNode.js listening on https port " + PORT_HTTPS);
     });
 } else {
-    http = require("http").Server(app);
+    http = require("http").Server(server);
+    
+    wss = new ws.Server({ server: http });
 
-    io = require("socket.io")(http, { 
-        pingInterval: ping_interval,
-        pingTimeout: ping_timeout
+    http.listen(PORT_HTTP, function() {
+        console.log("\nNode.js listening on http port " + PORT_HTTP);
     });
 }
 
-// ~ ~ ~ ~
-    
-app.use(express.static("public")); 
+server.use(express.static("public")); 
 
-app.get("/", function(req, res) {
+server.get("/", function(req, res) {
     res.sendFile(__dirname + "/public/index.html");
 });
 
-// ~ ~ ~ ~
-
-if (!debug) {
-    https.listen(port_https, function() {
-        console.log("\nNode.js listening on https port " + port_https);
-    });
-} else {
-    http.listen(port_http, function() {
-        console.log("\nNode.js listening on http port " + port_http);
-    });
-}
-
-// ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+// ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
 
 const strokeLifetime = 10000;
 
@@ -142,11 +127,11 @@ setInterval(function() {
 
 let lastIndex = 0;  // for ws
 
-io.on("connection", function(socket) {
-    console.log("A socket.io user connected.");
+wss.on("connection", function(socket) {
+    console.log("A user connected.");
     //~
     socket.on("disconnect", function(event) {
-        console.log("A socket.io user disconnected.");
+        console.log("A user disconnected.");
     });
     //~
     socket.on("clientStrokeToServer", function(data) { 
@@ -171,24 +156,4 @@ io.on("connection", function(socket) {
             }
         }
     });
-});
-
-ws.on("connection", function(socket) {
-    console.log("A ws user connected.");
-    //~
-    socket.onclose = function(event) {
-        console.log("A ws user disconnected.");
-    };
-    //~
-    socket.onmessage = function(event) {
-        //console.log(data["num"]);
-        let index = lastIndex; //data["num"];
-        if (index != NaN) {
-            let frame = layer.getFrame(index);
-            if (frame && frame.strokes.length > 0) {
-                socket.send(JSON.stringify(frame.strokes));
-                console.log("> WS > Sending a new frame " + frame.strokes[0]["index"] + " with " + frame.strokes.length + " strokes.");
-            }
-        }
-    };
 });
