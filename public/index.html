@@ -53,7 +53,7 @@
 			// * * * * * * * * * * * *
 			const wasd = new ThreeWasd(renderer, camera, scene);
 			const xr = new ThreeXr(renderer, camera, scene);
-			//wasd.resetCameraPosition();
+			wasd.resetCameraPosition();
 			// * * * * * * * * * * * *
 
 			const fogColor = 0x000000;
@@ -99,7 +99,6 @@
 			let useMinDistance = true;
 			let roundValues = true;
 			let numPlaces = 7;
-			let altKeyBlock = false;
 
 			let latk;
 

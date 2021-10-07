@@ -5,7 +5,8 @@ import { Util } from "./general-util.js";
 
 class ThreeWasd {
 
-    constructor(_renderer, _camera, _scene) {
+    constructor(_window, _renderer, _camera, _scene) {
+        window = _window;
         this.renderer = _renderer;
         this.camera = _camera;
         this.scene = _scene;
@@ -42,7 +43,7 @@ class ThreeWasd {
             this.rotateStart.set(event.clientX, event.clientY);
             this.isDragging = true;
             this.clicked = true; 
-
+            this.isWalkingRight = true;
             this.updateMousePos(event);
             //if (!this.altKeyBlock) beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
         });
@@ -50,7 +51,7 @@ class ThreeWasd {
         // Very similar to https://gist.github.com/mrflix/8351020
         window.addEventListener("mousemove", function(event) {
             if (this.altKeyBlock) {
-                if (!this.isDragging && !isPointerLocked()) {
+                if (!this.isDragging && !this.isPointerLocked()) {
                     return;
                 }
 
@@ -128,7 +129,7 @@ class ThreeWasd {
                 //endStroke();
             });       
         }
-    }
+    }    
 
     updateMousePos(event) {
         this.mouse3D = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
@@ -152,9 +153,9 @@ class ThreeWasd {
             if (Util.getKeyCode(event) === 'q') this.isFlyingDown = true;
             if (Util.getKeyCode(event) === 'e') this.isFlyingUp = true;
 
-            if (Util.getKeyCode(event) === 'j') armFrameBack = true;
-            if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
-            if (Util.getKeyCode(event) === 'l') armFrameForward = true;
+            //if (Util.getKeyCode(event) === 'j') armFrameBack = true;
+            //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
+            //if (Util.getKeyCode(event) === 'l') armFrameForward = true;
 
             if (event.altKey && !this.altKeyBlock) {
                 this.altKeyBlock = true;
@@ -170,9 +171,9 @@ class ThreeWasd {
             if (Util.getKeyCode(event) === 'q') this.isFlyingDown = false;
             if (Util.getKeyCode(event) === 'e') this.isFlyingUp = false;
 
-            if (Util.getKeyCode(event) === 'j') armFrameBack = false;
-            if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
-            if (Util.getKeyCode(event) === 'l') armFrameForward = false;
+            //if (Util.getKeyCode(event) === 'j') armFrameBack = false;
+            //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
+            //if (Util.getKeyCode(event) === 'l') armFrameForward = false;
 
             if (this.altKeyBlock) {
                 this.altKeyBlock = false;
