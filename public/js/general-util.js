@@ -122,28 +122,7 @@ class Util {
             location.replace(uri);
         }
     }
-
-    /*
-          let canvas = document.getElementById("canvas");
-      let ctx = canvas.getContext("2d");
-      let mouseX = mouseY = pmouseX = pmouseY = 0;
-      let mouseIsPressed = false;
-      
-      canvas.addEventListener("mousemove", function(e) { 
-        let cRect = canvas.getBoundingClientRect(); 
-        pmouseX = mouseX;
-        pmouseY = mouseY;
-        mouseX = Math.round(e.clientX - cRect.left);   
-        mouseY = Math.round(e.clientY - cRect.top);   
-      });
-      
-      canvas.addEventListener("mousedown", function(e) {
-        mouseIsPressed = true;
-      });
-      
-      canvas.addEventListener("mouseup", function(e) {
-        mouseIsPressed = false;
-      });
-      */
+    
 }
 
+export { Util };

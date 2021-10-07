@@ -1,93 +1,109 @@
 "use strict";
 
-let controller0, controller1;
-let pivot0, pivot1;
-let xrReady = false;
+import * as THREE from "./libraries/threejs/build/three.module.js";
 
-function onTriggerStart() {
-	this.userData.trigger = true;
-	let target;
-	if (this === controller0) {
-		target = new THREE.Vector3().setFromMatrixPosition(pivot0.matrixWorld);
-	} else {
-		target = new THREE.Vector3().setFromMatrixPosition(pivot1.matrixWorld);
+class ThreeXr {
+
+	constructor(_renderer, _camera, _scene) {
+		this.renderer = _renderer;
+		this.camera = _camera;
+		this.scene = _scene;
+
+		this.controller0;
+		this.controller1;
+		this.pivot0;
+		this.pivot1;
+		this.xrReady = false;
 	}
-	beginStroke(target.x, target.y, target.z);
-}
 
-function onTriggerEnd() {
-	this.userData.trigger = false;
-	endStroke();
-}
-
-function onGripStart() {
-	this.userData.grip = true;
-}
-
-function onGripEnd() {
-	this.userData.grip = false;
-}
-
-function handleController(controller) {
-	const userData = controller.userData;
-
-	if (userData.trigger) {
-		console.log("Trigger");
+	onTriggerStart() {
+		this.userData.trigger = true;
 		let target;
-		if (controller === controller0) {
-			target = new THREE.Vector3().setFromMatrixPosition(pivot0.matrixWorld);
+		if (this === this.controller0) {
+			target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
 		} else {
-			target = new THREE.Vector3().setFromMatrixPosition(pivot1.matrixWorld);
+			target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
+		}
+		//beginStroke(target.x, target.y, target.z);
+	}
+
+	onTriggerEnd() {
+		this.userData.trigger = false;
+		//endStroke();
+	}
+
+	onGripStart() {
+		this.userData.grip = true;
+	}
+
+	onGripEnd() {
+		this.userData.grip = false;
+	}
+
+	handleController(controller) {
+		const userData = controller.userData;
+
+		if (userData.trigger) {
+			console.log("Trigger");
+			let target;
+			if (controller === this.controller0) {
+				target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
+			} else {
+				target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
+			}
+
+			//updateStroke(target.x, target.y, target.z);
 		}
 
-		updateStroke(target.x, target.y, target.z);
+		if (userData.grip) {
+			console.log("Grip");
+		}
 	}
 
-	if (userData.grip) {
-		console.log("Grip");
+	makeControllerMeshes() {
+		const geometry = new THREE.CylinderGeometry(0.01, 0.02, 0.08, 5);
+		geometry.rotateX(-Math.PI / 2);
+		const material = new THREE.MeshStandardMaterial({ flatShading: true });
+		const mesh = new THREE.Mesh(geometry, material);
+
+		const pivot = new THREE.Mesh(new THREE.IcosahedronGeometry(0.01, 3));
+		pivot.name = 'pivot';
+		pivot.position.z = - 0.05;
+		mesh.add(pivot);
+
+		this.controller0.add(mesh.clone());
+		this.pivot0 = this.controller0.getObjectByName("pivot");
+		this.controller1.add(mesh.clone());
+		this.pivot1 = this.controller1.getObjectByName("pivot");
 	}
-}
 
-function makeControllerMeshes() {
-	const geometry = new THREE.CylinderGeometry(0.01, 0.02, 0.08, 5);
-	geometry.rotateX(-Math.PI / 2);
-	const material = new THREE.MeshStandardMaterial({ flatShading: true });
-	const mesh = new THREE.Mesh(geometry, material);
+	setupXr() {
+		this.controller0 = this.renderer.xr.getController(0);
+		this.controller0.addEventListener("selectstart", this.onTriggerStart);
+		this.controller0.addEventListener("selectend", this.onTriggerEnd);
+		this.controller0.addEventListener("squeezestart", this.onGripStart);
+		this.controller0.addEventListener("squeezeend", this.onGripEnd);
+		this.scene.add(this.controller0);
 
-	const pivot = new THREE.Mesh(new THREE.IcosahedronGeometry(0.01, 3));
-	pivot.name = 'pivot';
-	pivot.position.z = - 0.05;
-	mesh.add(pivot);
+		this.controller1 = this.renderer.xr.getController(1);
+		this.controller1.addEventListener("selectstart", this.onTriggerStart);
+		this.controller1.addEventListener("selectend", this.onTriggerEnd);
+		this.controller1.addEventListener("squeezestart", this.onGripStart);
+		this.controller1.addEventListener("squeezeend", this.onGripEnd);
+		this.scene.add(this.controller1);
 
-	controller0.add(mesh.clone());
-	pivot0 = controller0.getObjectByName("pivot");
-	controller1.add(mesh.clone());
-	pivot1 = controller1.getObjectByName("pivot");
-}
+		this.makeControllerMeshes();
 
-function setupXr() {
-	controller0 = renderer.xr.getController(0);
-	controller0.addEventListener("selectstart", onTriggerStart);
-	controller0.addEventListener("selectend", onTriggerEnd);
-	controller0.addEventListener("squeezestart", onGripStart);
-	controller0.addEventListener("squeezeend", onGripEnd);
-	scene.add(controller0);
-
-	controller1 = renderer.xr.getController(1);
-	controller1.addEventListener("selectstart", onTriggerStart);
-	controller1.addEventListener("selectend", onTriggerEnd);
-	controller1.addEventListener("squeezestart", onGripStart);
-	controller1.addEventListener("squeezeend", onGripEnd);
-	scene.add(controller1);
-
-	makeControllerMeshes();
-
-	xrReady = true;
-}
-
-function updateXr() {
-	if (xrReady) {
-		handleController(controller0);
-		handleController(controller1);
+		this.xrReady = true;
 	}
+
+	updateXr() {
+		if (this.xrReady) {
+			this.handleController(this.controller0);
+			this.handleController(this.controller1);
+		}
+	}
+
 }
+
+export { ThreeXr };
