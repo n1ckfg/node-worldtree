@@ -12,9 +12,6 @@
 		<script src="./js/libraries/magenta/magenta-helpers.js" defer></script>
 		<script src="./js/magenta-script.js" defer></script>
 		
-		<script src="./js/libraries/threejs/three.min.js"></script>
-		<script src="./js/libraries/threejs/webxr/VRButton.js"></script>
-
 		<script src="./js/libraries/util.js/threejs-util.js"></script>
 		<script src="./js/threejs-wasd.js"></script>
 		<script src="./js/threejs-mouse.js"></script>
@@ -25,8 +22,11 @@
 	</head>
 
 	<body>
-		<script>
+		<script type="module">
 			"use strict";
+
+			import * as THREE from "./js/libraries/threejs/build/three.module.js";
+			import { VRButton } from "./js/libraries/threejs/examples/jsm/webxr/VRButton.js";
 
 			const container = document.createElement("div");
 			document.body.appendChild(container);
