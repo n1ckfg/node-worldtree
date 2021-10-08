@@ -5,8 +5,7 @@ import { Util } from "./general-util.js";
 
 class ThreeWasd {
 
-    constructor(_window, _renderer, _camera, _scene) {
-        window = _window;
+    constructor(_renderer, _camera, _scene) {
         this.renderer = _renderer;
         this.camera = _camera;
         this.scene = _scene;
