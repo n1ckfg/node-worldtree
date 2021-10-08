@@ -47,8 +47,9 @@
 			const scene = new THREE.Scene();
 
 			// * * * * * * * * * * * *
+			const useControllerFactory = true;
 			const wasd = new ThreeWasd(window, renderer, camera, scene);
-			const xr = new ThreeXr(renderer, camera, scene);
+			const xr = new ThreeXr(renderer, camera, scene, useControllerFactory);
 			wasd.resetCameraPosition();
 			// * * * * * * * * * * * *
 
