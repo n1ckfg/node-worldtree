@@ -5,10 +5,6 @@
 		<title>Worldtree</title>
 		
 		<link rel="stylesheet" href="./css/main.css"/>
-
-		<script src="./js/libraries/magenta/magenta.js"></script>
-		<script src="./js/libraries/magenta/magenta-helpers.js" defer></script>
-		<script src="./js/magenta-script.js" defer></script>
 		
 		<script src="./js/libraries/latk.js/latk.js"></script>		
 		<script src="./js/latk-stroke-morph.js"></script>		
@@ -151,27 +147,36 @@
 			function render() {
 			    bigLocalPoints = [];
 			    bigRemotePoints = [];
-			    if (!isDrawing) localTempVec3Array = [];
 
 			    xr.updateXr();
 			    wasd.updateWasd();
 
-			    if (armFrameForward) {
-			        armFrameForward = false;
+			    // * * * * * * * * * * * * * *
+			    if (!isDrawing && wasd.clicked && wasd.dragged) {
+        			beginStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
+			    } else if (isDrawing && !wasd.clicked && wasd.dragged) {
+            		updateStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
+			    } else if (isDrawing && !wasd.clicked && !wasd.dragged) {
+					endStroke();
+			    }
+			    // * * * * * * * * * * * * * *
+
+			    if (wasd.armFrameForward) {
+			        wasd.armFrameForward = false;
 			        isPlaying = false;
 			        frameForward();
 			        console.log("ff");
 			    }
-			    if (armFrameBack) {
-			        armFrameBack = false;
+			    if (wasd.armFrameBack) {
+			        wasd.armFrameBack = false;
 			        isPlaying = false;
 			        frameBack();
 			        console.log("rew");
 			    }
-			    if (armTogglePause) {
+			    if (wasd.armTogglePause) {
 			        isPlaying = !isPlaying;
 			        console.log("playing: " + isPlaying);
-			        armTogglePause = false;
+			        wasd.armTogglePause = false;
 			    }
 
 			    if (isPlaying) {
@@ -186,14 +191,6 @@
 			        }
 			        
 			        //refreshRemoteFrame();
-			    }
-
-			    if (Math.random() < strokeLife) {
-			        for (let i=0; i<latk.layers.length; i++) {
-			            for (let j=0; j<latk.layers[i].frames.length; j++) {
-			                latk.layers[i].frames[j].strokes.shift();
-			            }
-			        }
 			    }
 
 			    refreshLocalFrame();
@@ -281,15 +278,15 @@
 
 			function updateStroke(x, y, z) {
 		        localTempVec3Array.push(new THREE.Vector3(x, y, z));
-		        console.log("Update " + localTempVec3Array.length + " points."); 
+		        //console.log("Update " + localTempVec3Array.length + " points."); 
 			}
 
 			function endStroke() { 
 				isDrawing = false;
 			    createStroke(localTempVec3Array, 0);
+			    localTempVec3Array = [];
 			    //socket.emit("clientStrokeToServer", tempStrokeToJson());
 			    console.log("End stroke.");
-			    getMagentaButton(localTempVec3Array);
 			}
 
 			function createStroke(vec3Array, index) {
@@ -303,20 +300,6 @@
 			        } else {
 			            latk.layers[index].getCurrentFrame().strokes.push(new LatkStroke(convertVec3ToLatkArray(vec3Array)));            
 			        }   
-			    }
-			}
-
-			function getMagentaButton(points) {
-			    try {
-			        let p1 = points[0];
-			        let p2 = points[points.length-1];
-			        let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-			        let button = parseInt(angle * (4.0/180.0) + 4);
-			        console.log("Trigger button " + button);
-			        buttonUp(button);
-			        buttonDown(button, false);
-			    } catch (e) { 
-			        console.log(e);
 			    }
 			}
 

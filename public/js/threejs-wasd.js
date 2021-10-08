@@ -16,7 +16,7 @@ class ThreeWasd extends THREE.EventDispatcher {
         this.rotateStart = new THREE.Vector2(this.domElement.innerWidth/2, this.domElement.innerHeight/2);
         this.rotateEnd = new THREE.Vector2(0,0);
         this.rotateDelta = new THREE.Vector2(0,0);
-        this.isDragging = false;
+        this.dragged = false;
 
         this.MOUSE_SPEED_X = 0.5;
         this.MOUSE_SPEED_Y = 0.3;
@@ -29,6 +29,10 @@ class ThreeWasd extends THREE.EventDispatcher {
         this.isWalkingRight = false;
         this.isFlyingUp = false;
         this.isFlyingDown = false;
+
+        this.armFrameBack = false;
+        this.armFrameForward = false;
+        this.armTogglePause = false;
 
         this.movingSpeed = 0;
         this.movingSpeedMax = 0.04;
@@ -64,16 +68,19 @@ class ThreeWasd extends THREE.EventDispatcher {
 
     onMouseDown(event) {
         this.rotateStart.set(event.clientX, event.clientY);
-        this.isDragging = true;
         this.clicked = true; 
+        this.dragged = true;
         this.updateMousePos(event);
-        //if (!this.altKeyBlock) beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
     }
 
         // Very similar to https://gist.github.com/mrflix/8351020
     onMouseMove(event) {
+        this.clicked = false;
+        this.dragged = true;
+        this.updateMousePos(event);
+
         if (this.altKeyBlock) {
-            if (!this.isDragging && !this.isPointerLocked()) {
+            if (!this.dragged && !this.isPointerLocked()) {
                 return;
             }
 
@@ -102,50 +109,36 @@ class ThreeWasd extends THREE.EventDispatcher {
             let euler = new THREE.Euler(this.phi, this.theta, 0, 'YXZ');
             this.camera.quaternion.setFromEuler(euler);
         }
-
-        this.clicked = false;
-
-        if (this.isDragging) {
-            this.updateMousePos(event);
-            //updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
-        }
     }
 
     onMouseUp(event) {
-        this.isDragging = false;
         this.clicked = false;
-        //endStroke();
+        this.dragged = false;
     }
 
     onFocus(event) {
-        this.isDragging = true;
+        this.dragged = true;
     }
 
     onBlur(event) {
-        this.isDragging = false;
+        this.dragged = false;
     }
 
     onTouchStart(event) {
         this.clicked = true; 
-        this.isDragging = true;
-
+        this.dragged = true;
         this.updateTouchPos(event);
-        //beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
     }
 
     onTouchMove(event) {
         this.clicked = false;
-
-        if (this.isDragging) {
-            updateTouchPos(event);
-            updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
-        }
+        this.dragged = true;
+        this.updateTouchPos(event);
     }
 
     onTouchEnd(event) {
         this.clicked = false;
-        this.isDragging = false;
-        //endStroke();
+        this.dragged = false;
     }     
 
     updateMousePos(event) {
@@ -169,9 +162,9 @@ class ThreeWasd extends THREE.EventDispatcher {
         if (Util.getKeyCode(event) === 'q') this.isFlyingDown = true;
         if (Util.getKeyCode(event) === 'e') this.isFlyingUp = true;
 
-        //if (Util.getKeyCode(event) === 'j') armFrameBack = true;
-        //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
-        //if (Util.getKeyCode(event) === 'l') armFrameForward = true;
+        if (Util.getKeyCode(event) === 'j') this.armFrameBack = true;
+        if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') this.armTogglePause = true;
+        if (Util.getKeyCode(event) === 'l') this.armFrameForward = true;
 
         if (event.altKey && !this.altKeyBlock) {
             this.altKeyBlock = true;
@@ -187,9 +180,9 @@ class ThreeWasd extends THREE.EventDispatcher {
         if (Util.getKeyCode(event) === 'q') this.isFlyingDown = false;
         if (Util.getKeyCode(event) === 'e') this.isFlyingUp = false;
 
-        //if (Util.getKeyCode(event) === 'j') armFrameBack = false;
-        //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
-        //if (Util.getKeyCode(event) === 'l') armFrameForward = false;
+        if (Util.getKeyCode(event) === 'j') this.armFrameBack = false;
+        if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') this.armTogglePause = false;
+        if (Util.getKeyCode(event) === 'l') this.armFrameForward = false;
 
         if (this.altKeyBlock) {
             this.altKeyBlock = false;
