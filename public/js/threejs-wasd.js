@@ -3,14 +3,17 @@
 import * as THREE from "./libraries/threejs/build/three.module.js";
 import { Util } from "./general-util.js";
 
-class ThreeWasd {
+class ThreeWasd extends THREE.EventDispatcher {
 
-    constructor(_renderer, _camera, _scene) {
+    constructor(_domElement, _renderer, _camera, _scene) {
+        super();
+
+        this.domElement = _domElement;
         this.renderer = _renderer;
         this.camera = _camera;
         this.scene = _scene;
 
-        this.rotateStart = new THREE.Vector2(window.innerWidth/2, window.innerHeight/2);
+        this.rotateStart = new THREE.Vector2(this.domElement.innerWidth/2, this.domElement.innerHeight/2);
         this.rotateEnd = new THREE.Vector2(0,0);
         this.rotateDelta = new THREE.Vector2(0,0);
         this.isDragging = false;
@@ -19,8 +22,6 @@ class ThreeWasd {
         this.MOUSE_SPEED_Y = 0.3;
         this.phi = 0;
         this.theta = 0;
-        this.checkFocus = false;
-        this.useTouch = true;
 
         this.isWalkingForward = false;
         this.isWalkingBackward = false;
@@ -38,147 +39,162 @@ class ThreeWasd {
     }
 
     setupMouse() {
-        window.addEventListener("mousedown", function(event) {
-            this.rotateStart.set(event.clientX, event.clientY);
-            this.isDragging = true;
-            this.clicked = true; 
-            this.isWalkingRight = true;
-            this.updateMousePos(event);
-            //if (!this.altKeyBlock) beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
-        });
+        const _onMouseMove = this.onMouseMove.bind(this);
+        const _onMouseDown = this.onMouseDown.bind(this);
+        const _onMouseUp = this.onMouseUp.bind(this);
+
+        this.domElement.addEventListener("mousemove", _onMouseMove);
+        this.domElement.addEventListener("mousedown", _onMouseDown);
+        this.domElement.addEventListener("mouseup", _onMouseUp);
+    }
+
+    setupWasd() {
+        const _onKeyDown = this.onKeyDown.bind(this);
+        const _onKeyUp = this.onKeyUp.bind(this);
+
+        this.domElement.addEventListener("keydown", _onKeyDown);
+        this.domElement.addEventListener("keyup", _onKeyUp);
+    }
+
+    setupResize() {
+        const _onResize = this.onResize.bind(this);
+
+        this.domElement.addEventListener("resize", _onResize);
+    }
+
+    onMouseDown(event) {
+        this.rotateStart.set(event.clientX, event.clientY);
+        this.isDragging = true;
+        this.clicked = true; 
+        this.updateMousePos(event);
+        //if (!this.altKeyBlock) beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
+    }
 
         // Very similar to https://gist.github.com/mrflix/8351020
-        window.addEventListener("mousemove", function(event) {
-            if (this.altKeyBlock) {
-                if (!this.isDragging && !this.isPointerLocked()) {
-                    return;
-                }
-
-                // Support pointer lock API.
-                if (this.isPointerLocked()) {
-                    let movementX = event.movementX || event.mozMovementX || 0;
-                    let movementY = event.movementY || event.mozMovementY || 0;
-                    this.rotateEnd.set(this.rotateStart.x - movementX, this.rotateStart.y - movementY);
-                } else {
-                    this.rotateEnd.set(event.clientX, event.clientY);
-                }
-
-                // Calculate how much we moved in mouse space.
-                this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
-                this.rotateStart.copy(this.rotateEnd);
-
-                // Keep track of the cumulative euler angles.
-                let element = document.body;
-                this.phi += 2 * Math.PI * this.rotateDelta.y / element.clientHeight * this.MOUSE_SPEED_Y;
-                this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * this.MOUSE_SPEED_X;
-
-                // Prevent looking too far up or down.
-                this.phi = Util.clamp(this.phi, -Math.PI/2, Math.PI/2);
-
-                //let euler = new THREE.Euler(-this.phi, -this.theta, 0, 'YXZ');
-                let euler = new THREE.Euler(this.phi, this.theta, 0, 'YXZ');
-                this.camera.quaternion.setFromEuler(euler);
+    onMouseMove(event) {
+        if (this.altKeyBlock) {
+            if (!this.isDragging && !this.isPointerLocked()) {
+                return;
             }
 
-            this.clicked = false;
-
-            if (this.isDragging) {
-                this.updateMousePos(event);
-                //updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
+            // Support pointer lock API.
+            if (this.isPointerLocked()) {
+                let movementX = event.movementX || event.mozMovementX || 0;
+                let movementY = event.movementY || event.mozMovementY || 0;
+                this.rotateEnd.set(this.rotateStart.x - movementX, this.rotateStart.y - movementY);
+            } else {
+                this.rotateEnd.set(event.clientX, event.clientY);
             }
-        });
 
-        window.addEventListener("mouseup", function(event) {
-            this.isDragging = false;
-            this.clicked = false;
-            //endStroke();
-        });
+            // Calculate how much we moved in mouse space.
+            this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart);
+            this.rotateStart.copy(this.rotateEnd);
 
-        if (this.checkFocus) {
-            window.addEventListener("focus", function(event) {
-                this.isDragging = true;
-            });
+            // Keep track of the cumulative euler angles.
+            let element = document.body;
+            this.phi += 2 * Math.PI * this.rotateDelta.y / element.clientHeight * this.MOUSE_SPEED_Y;
+            this.theta += 2 * Math.PI * this.rotateDelta.x / element.clientWidth * this.MOUSE_SPEED_X;
 
-            window.addEventListener("blur", function(event) {
-                this.isDragging = false;
-            });
+            // Prevent looking too far up or down.
+            this.phi = Util.clamp(this.phi, -Math.PI/2, Math.PI/2);
+
+            //let euler = new THREE.Euler(-this.phi, -this.theta, 0, 'YXZ');
+            let euler = new THREE.Euler(this.phi, this.theta, 0, 'YXZ');
+            this.camera.quaternion.setFromEuler(euler);
         }
 
-        if (this.useTouch) {
-            window.addEventListener("touchstart", function(event) {
-                this.clicked = true; 
-                this.isDragging = true;
+        this.clicked = false;
 
-                this.updateTouchPos(event);
-                //beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
-            });
-
-            window.addEventListener("touchmove", function(event) {
-                this.clicked = false;
-
-                if (this.isDragging) {
-                    updateTouchPos(event);
-                    updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
-                }
-            });
-
-            window.addEventListener("touchend", function(event) {
-                this.clicked = false;
-                this.isDragging = false;
-                //endStroke();
-            });       
+        if (this.isDragging) {
+            this.updateMousePos(event);
+            //updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
         }
-    }    
+    }
+
+    onMouseUp(event) {
+        this.isDragging = false;
+        this.clicked = false;
+        //endStroke();
+    }
+
+    onFocus(event) {
+        this.isDragging = true;
+    }
+
+    onBlur(event) {
+        this.isDragging = false;
+    }
+
+    onTouchStart(event) {
+        this.clicked = true; 
+        this.isDragging = true;
+
+        this.updateTouchPos(event);
+        //beginStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
+    }
+
+    onTouchMove(event) {
+        this.clicked = false;
+
+        if (this.isDragging) {
+            updateTouchPos(event);
+            updateStroke(this.mouse3D.x, this.mouse3D.y, this.mouse3D.z);
+        }
+    }
+
+    onTouchEnd(event) {
+        this.clicked = false;
+        this.isDragging = false;
+        //endStroke();
+    }     
 
     updateMousePos(event) {
-        this.mouse3D = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+        this.mouse3D = new THREE.Vector3((event.clientX / this.domElement.innerWidth) * 2 - 1, -(event.clientY / this.domElement.innerHeight) * 2 + 1, 0.5);
         this.mouse3D.unproject(this.camera);   
     }
 
     updateTouchPos(event) {
         if (event.targetTouches.length > 0) {
             let touch = event.targetTouches[0];
-            this.mouse3D = new THREE.Vector3((touch.pageX / window.innerWidth) * 2 - 1, -(touch.pageY / window.innerHeight) * 2 + 1, 0.5);
+            this.mouse3D = new THREE.Vector3((touch.pageX / this.domElement.innerWidth) * 2 - 1, -(touch.pageY / this.domElement.innerHeight) * 2 + 1, 0.5);
             this.mouse3D.unproject(this.camera);   
         }
     }
 
-    setupWasd() {
-        window.addEventListener("keydown", function(event) {
-            if (Util.getKeyCode(event) === 'w') this.isWalkingForward = true;
-            if (Util.getKeyCode(event) === 'a') this.isWalkingLeft = true;
-            if (Util.getKeyCode(event) === 's') this.isWalkingBackward = true;
-            if (Util.getKeyCode(event) === 'd') this.isWalkingRight = true;
-            if (Util.getKeyCode(event) === 'q') this.isFlyingDown = true;
-            if (Util.getKeyCode(event) === 'e') this.isFlyingUp = true;
+    onKeyDown(event) {
+        if (Util.getKeyCode(event) === 'w') this.isWalkingForward = true;
+        if (Util.getKeyCode(event) === 'a') this.isWalkingLeft = true;
+        if (Util.getKeyCode(event) === 's') this.isWalkingBackward = true;
+        if (Util.getKeyCode(event) === 'd') this.isWalkingRight = true;
+        if (Util.getKeyCode(event) === 'q') this.isFlyingDown = true;
+        if (Util.getKeyCode(event) === 'e') this.isFlyingUp = true;
 
-            //if (Util.getKeyCode(event) === 'j') armFrameBack = true;
-            //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
-            //if (Util.getKeyCode(event) === 'l') armFrameForward = true;
+        //if (Util.getKeyCode(event) === 'j') armFrameBack = true;
+        //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = true;
+        //if (Util.getKeyCode(event) === 'l') armFrameForward = true;
 
-            if (event.altKey && !this.altKeyBlock) {
-                this.altKeyBlock = true;
-                console.log(this.altKeyBlock);
-            }
-        });
+        if (event.altKey && !this.altKeyBlock) {
+            this.altKeyBlock = true;
+            console.log(this.altKeyBlock);
+        }
+    }
 
-        window.addEventListener("keyup", function(event) {
-            if (Util.getKeyCode(event) === 'w') this.isWalkingForward = false;
-            if (Util.getKeyCode(event) === 'a') this.isWalkingLeft = false;
-            if (Util.getKeyCode(event) === 's') this.isWalkingBackward = false;
-            if (Util.getKeyCode(event) === 'd') this.isWalkingRight = false;
-            if (Util.getKeyCode(event) === 'q') this.isFlyingDown = false;
-            if (Util.getKeyCode(event) === 'e') this.isFlyingUp = false;
+    onKeyUp(event) {
+        if (Util.getKeyCode(event) === 'w') this.isWalkingForward = false;
+        if (Util.getKeyCode(event) === 'a') this.isWalkingLeft = false;
+        if (Util.getKeyCode(event) === 's') this.isWalkingBackward = false;
+        if (Util.getKeyCode(event) === 'd') this.isWalkingRight = false;
+        if (Util.getKeyCode(event) === 'q') this.isFlyingDown = false;
+        if (Util.getKeyCode(event) === 'e') this.isFlyingUp = false;
 
-            //if (Util.getKeyCode(event) === 'j') armFrameBack = false;
-            //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
-            //if (Util.getKeyCode(event) === 'l') armFrameForward = false;
+        //if (Util.getKeyCode(event) === 'j') armFrameBack = false;
+        //if (Util.getKeyCode(event) === 'k' || Util.getKeyCode(event) === ' ') armTogglePause = false;
+        //if (Util.getKeyCode(event) === 'l') armFrameForward = false;
 
-            if (this.altKeyBlock) {
-                this.altKeyBlock = false;
-                console.log(this.altKeyBlock);
-            }
-        });
+        if (this.altKeyBlock) {
+            this.altKeyBlock = false;
+            console.log(this.altKeyBlock);
+        }
     }
 
     updateWasd() {
@@ -223,16 +239,14 @@ class ThreeWasd {
         }
     }
 
-    setupResize() {
-        window.addEventListener("resize", function(event) {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
+    onResize(event) {
+        const width = this.domElement.innerWidth;
+        const height = this.domElement.innerHeight;
 
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
 
-            this.renderer.setSize( width, height );
-        }, false);
+        this.renderer.setSize(width, height);
     }
 
     clearScene(preserveList) {
