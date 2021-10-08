@@ -18,18 +18,15 @@ class ThreeXr {
 
 	onTriggerStart() {
 		this.userData.trigger = true;
-		let target;
 		if (this === this.controller0) {
-			target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
+			this.userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
 		} else {
-			target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
+			this.userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
 		}
-		//beginStroke(target.x, target.y, target.z);
 	}
 
 	onTriggerEnd() {
 		this.userData.trigger = false;
-		//endStroke();
 	}
 
 	onGripStart() {
@@ -45,14 +42,11 @@ class ThreeXr {
 
 		if (userData.trigger) {
 			console.log("Trigger");
-			let target;
 			if (controller === this.controller0) {
-				target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
+				userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
 			} else {
-				target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
+				userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
 			}
-
-			//updateStroke(target.x, target.y, target.z);
 		}
 
 		if (userData.grip) {
