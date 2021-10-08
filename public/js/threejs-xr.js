@@ -21,6 +21,9 @@ class ThreeXr {
 		this.pivot0;
 		this.pivot1;
 		this.xrReady = false;
+
+		this.intersected = [];
+		this.intersectionMatrix = new THREE.Matrix4();
 	}
 
 	onTriggerStart() {
@@ -53,6 +56,10 @@ class ThreeXr {
 
 		if (userData.grip) {
 			console.log("Grip");
+		}
+
+		if (userData.raycast) {
+			this.intersectObjects(controller);
 		}
 	}
 
@@ -119,13 +126,86 @@ class ThreeXr {
 		this.controller1.addEventListener("squeezeend", this.onGripEnd);
 		this.scene.add(this.controller1);
 
+		//this.setupRaycaster();
+
 		this.makeControllerMeshes();
 	}
 
 	updateXr() {
 		if (this.xrReady) {
+			this.cleanIntersected();
+
 			this.handleController(this.controller0);
 			this.handleController(this.controller1);
+		}
+	}
+
+	// ~ ~ ~ 
+
+	raycastStart(event) {
+		const controller = event.target;
+		controller.userData.raycast = true;
+
+		const intersections = getIntersections(controller);
+
+		if (intersections.length > 0) {
+			const intersection = intersections[0];
+
+			const object = intersection.object;
+			object.material.emissive.b = 1;
+			controller.attach(object);
+
+			controller.userData.selected = object;
+		}
+	}
+
+	raycastEnd(event) {
+		const controller = event.target;
+		controller.userData.raycast = false;
+
+		if (controller.userData.selected !== undefined) {
+			const object = controller.userData.selected;
+			object.material.emissive.b = 0;
+			group.attach(object);
+
+			controller.userData.selected = undefined;
+		}
+	}
+
+	getIntersections(controller) {
+		this.intersectionMatrix.identity().extractRotation(controller.matrixWorld);
+
+		this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+		this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(this.intersectionMatrix);
+
+		return this.raycaster.intersectObjects(group.children, false);
+	}
+
+	intersectObjects(controller) {
+		// Do not highlight when already selected
+
+		if (controller.userData.selected !== undefined) return;
+
+		const line = controller.getObjectByName("line");
+		const intersections = getIntersections(controller);
+
+		if (intersections.length > 0) {
+			const intersection = intersections[0];
+
+			const object = intersection.object;
+			object.material.emissive.r = 1;
+			this.intersected.push(object);
+
+			line.scale.z = intersection.distance;
+		} else {
+			line.scale.z = 5;
+		}
+	}
+
+	cleanIntersected() {
+		while (this.intersected.length) {
+			const object = this.intersected.pop();
+			object.material.emissive.r = 0;
 		}
 	}
 
