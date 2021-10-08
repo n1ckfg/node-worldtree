@@ -16,7 +16,6 @@ class ThreeWasd extends THREE.EventDispatcher {
         this.rotateStart = new THREE.Vector2(this.domElement.innerWidth/2, this.domElement.innerHeight/2);
         this.rotateEnd = new THREE.Vector2(0,0);
         this.rotateDelta = new THREE.Vector2(0,0);
-        this.dragged = false;
 
         this.MOUSE_SPEED_X = 0.5;
         this.MOUSE_SPEED_Y = 0.3;
@@ -78,7 +77,7 @@ class ThreeWasd extends THREE.EventDispatcher {
         this.updateMousePos(event);
 
         if (this.altKeyBlock) {
-            if (!this.dragged && !this.isPointerLocked()) {
+            if (!this.clicked && !this.isPointerLocked()) {
                 return;
             }
 
@@ -153,7 +152,7 @@ class ThreeWasd extends THREE.EventDispatcher {
 
         if (event.altKey && !this.altKeyBlock) {
             this.altKeyBlock = true;
-            console.log(this.altKeyBlock);
+            console.log("Alt: " + this.altKeyBlock);
         }
     }
 
@@ -171,7 +170,7 @@ class ThreeWasd extends THREE.EventDispatcher {
 
         if (this.altKeyBlock) {
             this.altKeyBlock = false;
-            console.log(this.altKeyBlock);
+            console.log("Alt: " + this.altKeyBlock);
         }
     }
 
