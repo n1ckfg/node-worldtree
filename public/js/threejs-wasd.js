@@ -38,6 +38,7 @@ class ThreeWasd extends THREE.EventDispatcher {
         this.movingSpeedMax = 0.04;
         this.movingDelta = 0.002;
 
+        this.clicked = false; 
         this.altKeyBlock = false;
         this.mouse3D = new THREE.Vector3();
     }
@@ -69,14 +70,11 @@ class ThreeWasd extends THREE.EventDispatcher {
     onMouseDown(event) {
         this.rotateStart.set(event.clientX, event.clientY);
         this.clicked = true; 
-        this.dragged = true;
         this.updateMousePos(event);
     }
 
         // Very similar to https://gist.github.com/mrflix/8351020
     onMouseMove(event) {
-        this.clicked = false;
-        this.dragged = true;
         this.updateMousePos(event);
 
         if (this.altKeyBlock) {
@@ -113,32 +111,19 @@ class ThreeWasd extends THREE.EventDispatcher {
 
     onMouseUp(event) {
         this.clicked = false;
-        this.dragged = false;
-    }
-
-    onFocus(event) {
-        this.dragged = true;
-    }
-
-    onBlur(event) {
-        this.dragged = false;
     }
 
     onTouchStart(event) {
         this.clicked = true; 
-        this.dragged = true;
         this.updateTouchPos(event);
     }
 
     onTouchMove(event) {
-        this.clicked = false;
-        this.dragged = true;
         this.updateTouchPos(event);
     }
 
     onTouchEnd(event) {
         this.clicked = false;
-        this.dragged = false;
     }     
 
     updateMousePos(event) {

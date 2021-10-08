@@ -152,11 +152,11 @@
 			    wasd.updateWasd();
 
 			    // * * * * * * * * * * * * * *
-			    if (!isDrawing && wasd.clicked && wasd.dragged) {
+			    if (!isDrawing && wasd.clicked) {
         			beginStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
-			    } else if (isDrawing && !wasd.clicked && wasd.dragged) {
+			    } else if (isDrawing && wasd.clicked) {
             		updateStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
-			    } else if (isDrawing && !wasd.clicked && !wasd.dragged) {
+			    } else if (isDrawing && !wasd.clicked) {
 					endStroke();
 			    }
 			    // * * * * * * * * * * * * * *
@@ -270,7 +270,7 @@
 			}
 
 			function beginStroke(x, y, z) {
-			    isDrawing = true;
+				isDrawing = true;
 			    localTempVec3Array = [];
 			    localTempVec3Array.push(new THREE.Vector3(x, y, z));
 			    console.log("Begin new stroke.");
