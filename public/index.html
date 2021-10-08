@@ -152,21 +152,23 @@
 			    wasd.updateWasd();
 
 			    // * * * * * * * * * * * * * *
-			    if (!isDrawing && wasd.clicked) {
-        			beginStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
-			    } else if (isDrawing && wasd.clicked) {
-            		updateStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
-			    } else if (isDrawing && !wasd.clicked) {
-					endStroke();
-			    }
-
-			    if (!isDrawing && xr.controller0.userData.trigger) {
-        			beginStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
-			    } else if (isDrawing && xr.controller0.userData.trigger) {
-            		updateStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
-			    } else if (isDrawing && !xr.controller0.userData.trigger) {
-					endStroke();
-			    }
+			    if (renderer.xr.isPresenting) {
+				    if (!isDrawing && xr.controller0.userData.trigger) {
+	        			beginStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
+				    } else if (isDrawing && xr.controller0.userData.trigger) {
+	            		updateStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
+				    } else if (isDrawing && !xr.controller0.userData.trigger) {
+						endStroke();
+				    }
+				} else {
+				    if (!isDrawing && wasd.clicked) {
+	        			beginStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
+				    } else if (isDrawing && wasd.clicked) {
+	            		updateStroke(wasd.mouse3D.x, wasd.mouse3D.y, wasd.mouse3D.z);
+				    } else if (isDrawing && !wasd.clicked) {
+						endStroke();
+				    }
+				}
 			    // * * * * * * * * * * * * * *
 
 			    if (wasd.armFrameForward) {
