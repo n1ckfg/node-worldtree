@@ -154,11 +154,11 @@
 
 			    // * * * * * * * * * * * * * *
 			    if (renderer.xr.isPresenting) {
-				    if (!isDrawing && xr.controller0.userData.trigger) {
-	        			beginStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
-				    } else if (isDrawing && xr.controller0.userData.trigger) {
-	            		updateStroke(xr.controller0.userData.target.x, xr.controller0.userData.target.y, xr.controller0.userData.target.z);
-				    } else if (isDrawing && !xr.controller0.userData.trigger) {
+				    if (!isDrawing && xr.controller1.userData.trigger) {
+	        			beginStroke(xr.controller1.userData.target.x, xr.controller1.userData.target.y, xr.controller1.userData.target.z);
+				    } else if (isDrawing && xr.controller1.userData.trigger) {
+	            		updateStroke(xr.controller1.userData.target.x, xr.controller1.userData.target.y, xr.controller1.userData.target.z);
+				    } else if (isDrawing && !xr.controller1.userData.trigger) {
 						endStroke();
 				    }
 				} else {

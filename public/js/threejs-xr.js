@@ -47,26 +47,32 @@ class ThreeXr {
 
 		if (userData.trigger) {
 			console.log("Trigger");
-			if (controller === this.controller0) {
-				userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
-			} else {
+			if (controller === this.controller1) {
 				userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot1.matrixWorld);
+			} else {
+				userData.target = new THREE.Vector3().setFromMatrixPosition(this.pivot0.matrixWorld);
+				
+				if (!userData.raycast) {
+					this.raycastStart(controller);
+				} else {
+					this.intersectObjects(controller);
+				}
+			}
+		} else {
+			if (userData.raycast) {
+				this.raycastEnd(controller);
 			}
 		}
 
 		if (userData.grip) {
 			console.log("Grip");
 		}
-
-		if (userData.raycast) {
-			this.intersectObjects(controller);
-		}
 	}
 
 	makeControllerMeshes() {
-		const pivot = new THREE.Mesh(new THREE.IcosahedronGeometry(0.01, 3));
+		const pivot = new THREE.Mesh(new THREE.IcosahedronGeometry(0.005, 3));
 		pivot.name = 'pivot';
-		pivot.position.z = -0.05;
+		pivot.position.z =  -0.05;
 
 		if (this.useControllerFactory) {
 			const controllerModelFactory = new XRControllerModelFactory();
@@ -99,15 +105,16 @@ class ThreeXr {
 	}
 
 	setupRaycaster() {
-		const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+		const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -0.01), new THREE.Vector3(0, 0, -1)]);
 
 		const line = new THREE.Line(geometry);
 		line.name = "line";
 		line.scale.z = 5;
+		line.visible = false;
 
 		this.controller0.add(line.clone());
 		this.controller1.add(line.clone());
-
+		
 		this.raycaster = new THREE.Raycaster();
 	}
 
@@ -126,7 +133,7 @@ class ThreeXr {
 		this.controller1.addEventListener("squeezeend", this.onGripEnd);
 		this.scene.add(this.controller1);
 
-		//this.setupRaycaster();
+		this.setupRaycaster();
 
 		this.makeControllerMeshes();
 	}
@@ -142,31 +149,32 @@ class ThreeXr {
 
 	// ~ ~ ~ 
 
-	raycastStart(event) {
-		const controller = event.target;
+	raycastStart(controller) {
 		controller.userData.raycast = true;
+		controller.getObjectByName("line").visible = true;
 
-		const intersections = getIntersections(controller);
+		const intersections = this.getIntersections(controller);
 
 		if (intersections.length > 0) {
 			const intersection = intersections[0];
 
 			const object = intersection.object;
-			object.material.emissive.b = 1;
+			//object.material.emissive.b = 1;
 			controller.attach(object);
 
 			controller.userData.selected = object;
 		}
 	}
 
-	raycastEnd(event) {
-		const controller = event.target;
+	raycastEnd(controller) {
 		controller.userData.raycast = false;
+		controller.getObjectByName("line").visible = false;
 
 		if (controller.userData.selected !== undefined) {
 			const object = controller.userData.selected;
-			object.material.emissive.b = 0;
-			group.attach(object);
+			//object.material.emissive.b = 0;
+			//group.attach(object);
+			this.scene.attach(object);
 
 			controller.userData.selected = undefined;
 		}
@@ -178,7 +186,8 @@ class ThreeXr {
 		this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
 		this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(this.intersectionMatrix);
 
-		return this.raycaster.intersectObjects(group.children, false);
+		//return this.raycaster.intersectObjects(group.children, false);
+		return this.raycaster.intersectObjects(this.scene.children, false);
 	}
 
 	intersectObjects(controller) {
@@ -187,13 +196,13 @@ class ThreeXr {
 		if (controller.userData.selected !== undefined) return;
 
 		const line = controller.getObjectByName("line");
-		const intersections = getIntersections(controller);
+		const intersections = this.getIntersections(controller);
 
 		if (intersections.length > 0) {
 			const intersection = intersections[0];
 
 			const object = intersection.object;
-			object.material.emissive.r = 1;
+			//object.material.emissive.r = 1;
 			this.intersected.push(object);
 
 			line.scale.z = intersection.distance;
@@ -205,7 +214,7 @@ class ThreeXr {
 	cleanIntersected() {
 		while (this.intersected.length) {
 			const object = this.intersected.pop();
-			object.material.emissive.r = 0;
+			//object.material.emissive.r = 0;
 		}
 	}
 
